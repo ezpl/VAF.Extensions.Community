@@ -3,6 +3,7 @@ using MFiles.VAF.Core;
 using MFiles.VAF.Extensions;
 using MFiles.VAF.Extensions.Configuration;
 using MFiles.VAF.Extensions.Webhooks.Authentication;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,44 +14,43 @@ using System.Reflection;
 
 namespace MFiles.VAF.Extensions.Webhooks.Configuration
 {
-    public class WebhookAuthenticationConfigurationManager<TSecureConfiguration>
-        where TSecureConfiguration : class, new()
-    {
-        private ILogger Logger { get; } = LogManager.GetLogger<WebhookAuthenticationConfigurationManager<TSecureConfiguration>>();
-        public ConfigurableVaultApplicationBase<TSecureConfiguration> VaultApplication { get; }
-        protected Dictionary<string, IWebhookAuthenticator> Authenticators { get; } 
-            = new Dictionary<string, IWebhookAuthenticator>();
-        protected IWebhookAuthenticator FallbackAuthenticator { get; set; }
-            = new BlockAllRequestsWebhookAuthenticator();
-        public WebhookAuthenticationConfigurationManager(ConfigurableVaultApplicationBase<TSecureConfiguration> vaultApplication)
-        {
-            this.VaultApplication = vaultApplication ?? throw new ArgumentNullException(nameof(vaultApplication));
-        }
+	public class WebhookAuthenticationConfigurationManager<TSecureConfiguration>
+		where TSecureConfiguration : class, new()
+	{
+		private ILogger Logger { get; } = LogManager.GetLogger<WebhookAuthenticationConfigurationManager<TSecureConfiguration>>();
+		public ConfigurableVaultApplicationBase<TSecureConfiguration> VaultApplication { get; }
+		protected Dictionary<string, IWebhookAuthenticator> Authenticators { get; }
+			= new Dictionary<string, IWebhookAuthenticator>();
+		protected IWebhookAuthenticator FallbackAuthenticator { get; set; }
+			= new BlockAllRequestsWebhookAuthenticator();
+		public WebhookAuthenticationConfigurationManager(ConfigurableVaultApplicationBase<TSecureConfiguration> vaultApplication)
+		{
+			this.VaultApplication = vaultApplication ?? throw new ArgumentNullException(nameof(vaultApplication));
+		}
 
 		/// <summary>
 		/// Ensures that this instance represents data in <paramref name="configuration"/>.
 		/// </summary>
 		/// <param name="configuration"></param>
-        public virtual void PopulateFromConfiguration(TSecureConfiguration configuration)
-        {
-            this.Authenticators.Clear();
+		public virtual void PopulateFromConfiguration(TSecureConfiguration configuration)
+		{
+			this.Authenticators.Clear();
 
 			// Sanity.
 			if (null == this.VaultApplication?.Webhooks)
 				return;
 
 			// If we can parse the config then use it.
-			if(configuration is IConfigurationWithWebhookConfiguration c
-				&& null != c.WebhookConfiguration)
+			if (configuration is IConfigurationWithWebhookConfiguration c && null != c.WebhookConfiguration)
 			{
 				this.Logger?.Trace($"Parsing webhook configuration...");
-				foreach(var webhook in this.VaultApplication.Webhooks)
+				foreach (var webhook in this.VaultApplication.Webhooks)
 				{
 					if (string.IsNullOrWhiteSpace(webhook?.WebhookName))
 						return;
 
 					// Is it anonymous, in which case we're golden.
-					if(webhook.GetCustomMethodAttributes<AnonymousWebhookAuthenticationAttribute>().Any())
+					if (webhook.GetCustomMethodAttributes<AnonymousWebhookAuthenticationAttribute>().Any())
 					{
 						this.Logger?.Info($"Webhook with name {webhook.WebhookName} found, configured via AnonymousWebhookAuthentication.");
 						this.Authenticators.Add(webhook.WebhookName, new AnonymousWebhookAuthenticator());
@@ -63,7 +63,7 @@ namespace MFiles.VAF.Extensions.Webhooks.Configuration
 						continue;
 					}
 
-					if(c.WebhookConfiguration.TryGetWebhookAuthenticator(webhook.WebhookName, out IWebhookAuthenticator authenticator)
+					if (c.WebhookConfiguration.TryGetWebhookAuthenticator(webhook.WebhookName, out IWebhookAuthenticator authenticator)
 						&& null != authenticator)
 					{
 						this.Logger?.Info($"Webhook with name {webhook.WebhookName} found, configured via {authenticator.GetType().FullName}.");
@@ -79,7 +79,7 @@ namespace MFiles.VAF.Extensions.Webhooks.Configuration
 			{
 				this.Logger?.Trace($"The configuration does not inherit from IConfigurationWithWebhookConfiguration so cannot parse webhook config.");
 			}
-        }
+		}
 
 		/// <summary>
 		/// Returns the instance of <see cref="IWebhookAuthenticator"/> associated with the
@@ -87,8 +87,8 @@ namespace MFiles.VAF.Extensions.Webhooks.Configuration
 		/// </summary>
 		/// <param name="webhook">The webhook name.</param>
 		/// <returns>The authenticator, or <see cref="FallbackAuthenticator"/> if none is registered.</returns>
-        public IWebhookAuthenticator GetAuthenticator(string webhook)
-            => this.Authenticators.ContainsKey(webhook) ? this.Authenticators[webhook] : this.FallbackAuthenticator;
+		public IWebhookAuthenticator GetAuthenticator(string webhook)
+			=> this.Authenticators.ContainsKey(webhook) ? this.Authenticators[webhook] : this.FallbackAuthenticator;
 
-    }
+	}
 }

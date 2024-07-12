@@ -88,30 +88,14 @@ namespace MFiles.VAF.Extensions
 				);
 		}
 
-		protected virtual WebhookMethodInfo<TSecureConfiguration> CreateWebhookMethodInfo
-		(
-			MethodInfo methodInfo,
-			object instance,
-			WebhookAttribute attribute
-		)
+		protected virtual WebhookMethodInfo<TSecureConfiguration> CreateWebhookMethodInfo(MethodInfo methodInfo, object instance, WebhookAttribute attribute)
 		{
-			return new WebhookMethodInfo<TSecureConfiguration>
-			(
-				this,
-				attribute,
-				methodInfo,
-				instance
-			);
+			return new WebhookMethodInfo<TSecureConfiguration>(this, attribute, methodInfo, instance);
 		}
 
 		/// <summary>
 		/// <returns>The created method info object.</returns>
-		protected override IVaultExtensionMethodInfo CreateVaultAnonymousExtensionMethodInfo
-		(
-			MethodInfo methodInfo,
-			object instance,
-			VaultAnonymousExtensionMethodAttribute attribute
-		)
+		protected override IVaultExtensionMethodInfo CreateVaultAnonymousExtensionMethodInfo(MethodInfo methodInfo, object instance, VaultAnonymousExtensionMethodAttribute attribute)
 		{
 			// Web hooks are first-party.
 			if (attribute is WebhookAttribute a)
@@ -136,7 +120,7 @@ namespace MFiles.VAF.Extensions
 				{
 					WebhookConfigurationEditor.Instance.Add(a.Name, typeof(WebhookConfiguration));
 				}
-				
+
 				return webhookMethodInfo;
 			}
 

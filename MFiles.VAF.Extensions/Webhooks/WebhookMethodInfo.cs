@@ -5,7 +5,9 @@ using MFiles.VAF.Configuration.Logging;
 using MFiles.VAF.Core;
 using MFiles.VAF.Extensions.Webhooks.Authentication;
 using MFiles.VAF.Extensions.Webhooks.Configuration;
+
 using MFilesAPI;
+
 using System;
 using System.CodeDom;
 using System.Collections.Generic;
@@ -16,26 +18,26 @@ using System.Threading.Tasks;
 
 namespace MFiles.VAF.Extensions.Webhooks
 {
-    public class WebhookMethodInfo<TConfiguration>
-        : IVaultExtensionMethodInfo
-        where TConfiguration : class, new()
-    {
-        private ILogger Logger = LogManager.GetLogger(typeof(WebhookMethodInfo<TConfiguration>));
+	public class WebhookMethodInfo<TConfiguration>
+		: IVaultExtensionMethodInfo
+		where TConfiguration : class, new()
+	{
+		private ILogger Logger = LogManager.GetLogger(typeof(WebhookMethodInfo<TConfiguration>));
 
-        protected IWebhook Details { get; }
-        public string WebhookName => this.Details?.Name;
-        
-        protected MethodInfo MethodInfo { get; }
-		public IEnumerable<T> GetCustomMethodAttributes<T>() 
+		protected IWebhook Details { get; }
+		public string WebhookName => this.Details?.Name;
+
+		protected MethodInfo MethodInfo { get; }
+		public IEnumerable<T> GetCustomMethodAttributes<T>()
 			where T : Attribute
 			=> this.MethodInfo?.GetCustomAttributes<T>();
 
-        protected object Instance { get; }
+		protected object Instance { get; }
 
 		protected ConfigurableVaultApplicationBase<TConfiguration> VaultApplication { get; }
 
 		/// <inheritdoc />
-        public virtual bool HasSeparateEventHandlerProxy => true;
+		public virtual bool HasSeparateEventHandlerProxy => true;
 
 		/// <inheritdoc />
 		public EventHandlerVaultUserIdentity VaultUserIdentity => EventHandlerVaultUserIdentity.Server;
@@ -49,30 +51,23 @@ namespace MFiles.VAF.Extensions.Webhooks
 		/// <inheritdoc />
 		public int Priority => 0;
 
-        public WebhookMethodInfo
-        (
-			ConfigurableVaultApplicationBase<TConfiguration> vaultApplication,
-			IWebhook details,
-            MethodInfo methodInfo, 
-            object instance
-        )
-        {
-            this.VaultApplication = vaultApplication
-				?? throw new ArgumentNullException(nameof(vaultApplication));
-            this.Details = details ?? throw new ArgumentNullException(nameof(details));
+		public WebhookMethodInfo(ConfigurableVaultApplicationBase<TConfiguration> vaultApplication, IWebhook details, MethodInfo methodInfo, object instance)
+		{
+			this.VaultApplication = vaultApplication ?? throw new ArgumentNullException(nameof(vaultApplication));
+			this.Details = details ?? throw new ArgumentNullException(nameof(details));
 
-            // Override the extension method.
-            this.MethodInfo = methodInfo;
-            this.Instance = instance;
-        }
+			// Override the extension method.
+			this.MethodInfo = methodInfo;
+			this.Instance = instance;
+		}
 
 		/// <inheritdoc />
 		public string Execute(EventHandlerEnvironment env, IExecutionTrace trace)
-            => throw new InvalidOperationException("Only ExecuteAnonymous is supported");
+			=> throw new InvalidOperationException("Only ExecuteAnonymous is supported");
 
 		/// <inheritdoc />
 		public AnonymousExtensionMethodResult ExecuteAnonymous(EventHandlerEnvironment environment, IExecutionTrace trace)
-        {
+		{
 			try
 			{
 				trace?.TraceBeforeExtensionMethod(environment.ActivityID.DisplayValue, this.LogString);
@@ -103,7 +98,7 @@ namespace MFiles.VAF.Extensions.Webhooks
 				trace?.TraceAfterExtensionMethod(environment.ActivityID.DisplayValue, this.LogString, null);
 				return result;
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				// Notify the execution end also in case of error.
 				trace?.TraceAfterExtensionMethod(environment.ActivityID.DisplayValue, this.LogString, e.Message);
@@ -223,7 +218,7 @@ namespace MFiles.VAF.Extensions.Webhooks
 
 		protected virtual AnonymousExtensionMethodResult ConvertToAnonymousExtensionMethodResult
 		(
-			Type returnType, 
+			Type returnType,
 			ISerializer serializer,
 			object output
 		)
@@ -287,31 +282,31 @@ namespace MFiles.VAF.Extensions.Webhooks
 
 			// Validate that this type is okay for the declaration.
 			if ((authenticator == null || authenticator is BlockAllRequestsWebhookAuthenticator)
-                    && !this.Details.SupportsNoAuthentication)
-            {
-                this.Logger.Warn($"Web hook {this.WebhookName} requires authentication, but no authentication is configured.  Request is being denied.");
-                throw new UnauthorizedAccessException();
-            }
+					&& !this.Details.SupportsNoAuthentication)
+			{
+				this.Logger.Warn($"Web hook {this.WebhookName} requires authentication, but no authentication is configured.  Request is being denied.");
+				throw new UnauthorizedAccessException();
+			}
 			if (authenticator == null)
 			{
 				// No authenticator, but the attribute supports no authentication, so...  Awesome.
 				return true;
 			}
-            //if (!this.Details.SupportsAuthenticator(authenticator.GetType()))
-            //{
-            //    this.Logger.Warn($"Web hook {this.WebhookName} does not support authenticator of type {authenticator.GetType().FullName}.  Request is being denied.");
-            //    throw new UnauthorizedAccessException();
-            //}
+			//if (!this.Details.SupportsAuthenticator(authenticator.GetType()))
+			//{
+			//    this.Logger.Warn($"Web hook {this.WebhookName} does not support authenticator of type {authenticator.GetType().FullName}.  Request is being denied.");
+			//    throw new UnauthorizedAccessException();
+			//}
 
 			// Authenticate!
-            if(!authenticator.IsRequestAuthenticated(env, out output))
-            {
-                this.Logger.Debug($"Authenticator of type {authenticator.GetType().FullName} stated that the request was not authenticated.  Request is being denied.");
-                return false;
-            }
+			if (!authenticator.IsRequestAuthenticated(env, out output))
+			{
+				this.Logger.Debug($"Authenticator of type {authenticator.GetType().FullName} stated that the request was not authenticated.  Request is being denied.");
+				return false;
+			}
 
-            return true;
+			return true;
 
-        }
-    }
+		}
+	}
 }
