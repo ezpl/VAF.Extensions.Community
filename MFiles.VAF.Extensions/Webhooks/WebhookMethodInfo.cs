@@ -264,12 +264,7 @@ namespace MFiles.VAF.Extensions.Webhooks
 		/// <param name="output">The output of the authorisation process, if one is provided.</param>
 		/// <returns><see langword="true"/> if the request is authorised, <see langword="false"/> otherwise.</returns>
 		/// <exception cref="UnauthorizedAccessException"></exception>
-		public virtual bool IsValidRequest
-		(
-			EventHandlerEnvironment env,
-			IWebhookAuthenticator authenticator,
-			out AnonymousExtensionMethodResult output
-		)
+		public virtual bool IsValidRequest(EventHandlerEnvironment env, IWebhookAuthenticator authenticator, out AnonymousExtensionMethodResult output)
 		{
 			output = null;
 
