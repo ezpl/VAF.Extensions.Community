@@ -1,7 +1,9 @@
 ﻿using MFiles.VAF.Common;
 using MFiles.VAF.Configuration;
 using MFiles.VAF.Configuration.Logging;
+
 using MFilesAPI;
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,8 +15,8 @@ using System.Web;
 
 namespace MFiles.VAF.Extensions.Webhooks.Authentication
 {
-    public class SecretWebhookAuthenticator
-        : WebhookAuthenticatorBase
+	public class SecretWebhookAuthenticator
+		: WebhookAuthenticatorBase
 	{
 		[DataContract]
 		[JsonConfEditor(NameMember = nameof(Key))]
@@ -53,16 +55,16 @@ namespace MFiles.VAF.Extensions.Webhooks.Authentication
 		public List<Secret> Secrets { get; set; }
 			= new List<Secret>();
 
-        public enum SecretLocation
-        {
-            None = 0,
-            HttpHeader = 1,
-            Querystring = 2
-        }
+		public enum SecretLocation
+		{
+			None = 0,
+			HttpHeader = 1,
+			Querystring = 2
+		}
 
-        public SecretWebhookAuthenticator()
-            : base(WebhookAuthenticationType.Secret)
-        {
+		public SecretWebhookAuthenticator()
+			: base(WebhookAuthenticationType.Secret)
+		{
 		}
 
 		/// <inheritdoc />
@@ -84,7 +86,7 @@ namespace MFiles.VAF.Extensions.Webhooks.Authentication
 				if (c != null)
 					continue;
 
-				switch(c.Location)
+				switch (c.Location)
 				{
 					case SecretLocation.HttpHeader:
 					case SecretLocation.Querystring:
@@ -112,10 +114,10 @@ namespace MFiles.VAF.Extensions.Webhooks.Authentication
 		}
 
 		protected virtual bool IsValid(NamedValues httpHeaders)
-        {
-            if (null == httpHeaders)
-                return false;
-			foreach(var c in this.Secrets.Where(c => c?.Enabled ?? false))
+		{
+			if (null == httpHeaders)
+				return false;
+			foreach (var c in this.Secrets.Where(c => c?.Enabled ?? false))
 			{
 				if (string.IsNullOrWhiteSpace(c.Key))
 					continue;
@@ -125,32 +127,32 @@ namespace MFiles.VAF.Extensions.Webhooks.Authentication
 					return true;
 			}
 			return false;
-        }
-
-        protected virtual bool IsValid(NameValueCollection querystringValues)
-        {
-            if (null == querystringValues)
-                return false;
-			foreach (var c in this.Secrets.Where(c => c?.Enabled ?? false))
-			{
-				if (string.IsNullOrWhiteSpace(c.Key))
-					continue;
-				if (string.IsNullOrWhiteSpace(c.SecretValue))
-					continue;
-				var values = querystringValues.GetValues(c.Key);
-				if (values.Length != 1)
-					return false;
-				if(values[0] == c?.SecretValue)
-					return true;
-			}
-			return false;
 		}
 
-        protected override bool AreCredentialsValid(EventHandlerEnvironment env)
-        {
-            // Sanity.
-            if (null == env)
-                throw new ArgumentNullException(nameof(env));
+		protected virtual bool IsValid(NameValueCollection querystringValues)
+		{
+			bool isValid = false;
+
+			if (querystringValues != null)
+			{
+				foreach (var c in this.Secrets?.Where(c => (c?.Enabled ?? false)
+					&& c.Location == SecretLocation.Querystring
+					&& c.Key.HasValue()
+					&& c.SecretValue.HasValue()))
+				{
+					var values = querystringValues.GetValues(c.Key);
+					isValid = (values?.FirstOrDefault() == c?.SecretValue);
+				}
+			}
+
+			return isValid;
+		}
+
+		protected override bool AreCredentialsValid(EventHandlerEnvironment env)
+		{
+			// Sanity.
+			if (null == env)
+				throw new ArgumentNullException(nameof(env));
 
 			foreach (var c in this.Secrets.Where(c => c?.Enabled ?? false))
 			{
@@ -163,7 +165,8 @@ namespace MFiles.VAF.Extensions.Webhooks.Authentication
 							return true;
 						break;
 					case SecretLocation.Querystring:
-						if (this.IsValid(HttpUtility.ParseQueryString(env.InputQueryString)))
+						string queryParameters = env.InputQueryString.Split('?').ElementAtOrDefault(1); // Remove path from query parameters
+						if (this.IsValid(HttpUtility.ParseQueryString(queryParameters)))
 							return true;
 						break;
 					default:
@@ -171,14 +174,15 @@ namespace MFiles.VAF.Extensions.Webhooks.Authentication
 						continue;
 				}
 			}
-			return false;
-        }
 
-        protected override bool ContainsCredentials(EventHandlerEnvironment env)
-        {
-            // Sanity.
-            if (null == env)
-                throw new ArgumentNullException(nameof(env));
+			return false;
+		}
+
+		protected override bool ContainsCredentials(EventHandlerEnvironment env)
+		{
+			// Sanity.
+			if (null == env)
+				throw new ArgumentNullException(nameof(env));
 			foreach (var c in this.Secrets.Where(c => c?.Enabled ?? false))
 			{
 				switch (c.Location)
@@ -190,7 +194,8 @@ namespace MFiles.VAF.Extensions.Webhooks.Authentication
 							return true;
 						break;
 					case SecretLocation.Querystring:
-						if (this.ContainsAuthenticationDetails(HttpUtility.ParseQueryString(env.InputQueryString)))
+						string queryParameters = env.InputQueryString.Split('?').ElementAtOrDefault(1); // Remove path from query parameters
+						if (this.ContainsAuthenticationDetails(HttpUtility.ParseQueryString(queryParameters)))
 							return true;
 						break;
 					default:
@@ -199,12 +204,12 @@ namespace MFiles.VAF.Extensions.Webhooks.Authentication
 				}
 			}
 			return false;
-        }
+		}
 
-        protected virtual bool ContainsAuthenticationDetails(NamedValues httpHeaders)
-        {
-            if (null == httpHeaders)
-                return false;
+		protected virtual bool ContainsAuthenticationDetails(NamedValues httpHeaders)
+		{
+			if (null == httpHeaders)
+				return false;
 			foreach (var c in this.Secrets.Where(c => c?.Enabled ?? false))
 			{
 				if (string.IsNullOrWhiteSpace(c.Key))
@@ -213,12 +218,12 @@ namespace MFiles.VAF.Extensions.Webhooks.Authentication
 					return true;
 			}
 			return false;
-        }
+		}
 
-        public virtual bool ContainsAuthenticationDetails(NameValueCollection querystringValues)
-        {
-            if (null == querystringValues)
-                return false;
+		public virtual bool ContainsAuthenticationDetails(NameValueCollection querystringValues)
+		{
+			if (null == querystringValues)
+				return false;
 			foreach (var c in this.Secrets.Where(c => c?.Enabled ?? false))
 			{
 				if (string.IsNullOrWhiteSpace(c.Key))
@@ -231,6 +236,6 @@ namespace MFiles.VAF.Extensions.Webhooks.Authentication
 					return true;
 			}
 			return false;
-        }
-    }
+		}
+	}
 }
