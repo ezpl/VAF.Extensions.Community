@@ -46,9 +46,11 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MFiles.VAF" Version="24.5.714.1" />
+    <PackageReference Include="Interop.MFilesAPI" Version="25.3.7" />
+    <PackageReference Include="MFiles.Crypto" Version="25.3.7" />
+    <PackageReference Include="MFiles.VAF" Version="25.3.727.1" />
     <PackageReference Include="MFiles.VAF.Configuration.Logging.NLog" Version="23.12.3" />
-    <PackageReference Include="MFilesAPI.Extensions" Version="24.4.3" />
+    <PackageReference Include="MFilesAPI.Extensions" Version="25.2.4" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
   </ItemGroup>
   <ItemGroup>
