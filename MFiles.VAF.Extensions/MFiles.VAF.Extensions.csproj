@@ -52,7 +52,7 @@
     <PackageReference Include="MFiles.VAF.Configuration" Version="25.3.4" />
     <PackageReference Include="MFiles.VAF.Configuration.Logging.NLog" Version="23.12.3" />
     <PackageReference Include="MFilesAPI.Extensions" Version="25.2.4" />
-    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
